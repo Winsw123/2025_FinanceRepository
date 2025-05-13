@@ -12,7 +12,7 @@ class TransactionRepositoryImpl(
     override suspend fun insertTransaction(transaction: Transaction) {
         dao.insertTransaction(transaction)
     }
-
+:wq
     // delete
     override suspend fun deleteTransaction(transaction: Transaction) {
         dao.deleteTransaction(transaction)
