@@ -10,6 +10,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 
+import com.example.financerepository.data.model.Transaction
+import com.example.financerepository.data.model.TransactionType
+import com.example.financerepository.repository.TransactionRepositoryImpl
+
 // adding or deleting Result
 sealed class ResultStatus {
     object Idle : ResultStatus()
@@ -18,20 +22,20 @@ sealed class ResultStatus {
 }
 
 class TransactionViewModel(
-    private val repository: TransactionRepository
+    private val repository: TransactionRepositoryImpl
 ) : ViewModel() {
 
     //Data from DAO
-    val transactions: StateFlow<List<TransactionEntity>> =
-        repository.getAll()
+    val transactions: StateFlow<List<Transaction>> =
+        repository.getAllTransactions()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     //repository delete function
     private val _deleteResult = MutableStateFlow<ResultStatus>(ResultStatus.Idle)
     val deleteResult: StateFlow<ResultStatus> = _deleteResult
-    fun deleteTransaction(transaction: TransactionEntity) {
+    fun deleteTransaction(transaction: Transaction) {
         viewModelScope.launch {
             try {
-                repository.delete(transaction)
+                repository.deleteTransaction(transaction)
                 _deleteResult.value = ResultStatus.Success("刪除成功")
             } catch (e: Exception) {
                 _deleteResult.value = ResultStatus.Error("刪除失敗：${e.message}")
@@ -42,10 +46,10 @@ class TransactionViewModel(
     private val _insertResult = MutableStateFlow<ResultStatus>(ResultStatus.Idle)
     val insertResult: StateFlow<ResultStatus> = _insertResult
     // function for adding transaction
-    fun addTransaction(title: String, amount: Double) {
+    fun addTransaction(title: String, amount: Double, type: TransactionType,category: String) {
         viewModelScope.launch {
             try {
-                val transaction = TransactionEntity(title = title, amount = amount)
+                val transaction = Transaction(title = title, amount = amount, type = type, category = category)
                 repository.insertTransaction(transaction)
                 _insertResult.value = ResultStatus.Success("新增成功")
             } catch (e: Exception) {
@@ -56,15 +60,4 @@ class TransactionViewModel(
 }
 
 // ---------- Fake Repository Interface ----------
-interface TransactionRepository {
-    suspend fun insertTransaction(transaction: TransactionEntity)
-    suspend fun delete(transaction: TransactionEntity)
-    fun getAll(): Flow<List<TransactionEntity>>
-}
-// ---------- Fake Model ------------
-data class TransactionEntity(
-    val id: Int = 0,
-    val title: String,
-    val amount: Double,
-    val timestamp: Long = System.currentTimeMillis()
-)
+
