@@ -61,26 +61,6 @@ interface TransactionRepository {
     suspend fun delete(transaction: TransactionEntity)
     fun getAll(): Flow<List<TransactionEntity>>
 }
-
-// ---------- Fake Repository for Testing ----------
-class FakeTransactionRepository : TransactionRepository {
-    private val _transactions = MutableStateFlow<List<TransactionEntity>>(emptyList())
-    val inserted: List<TransactionEntity> get() = _transactions.value
-
-    override suspend fun insertTransaction(transaction: TransactionEntity) {
-        _transactions.value += transaction
-    }
-
-    override suspend fun delete(transaction: TransactionEntity) {
-        _transactions.value -= transaction
-    }
-
-    override fun getAll(): Flow<List<TransactionEntity>> {
-        return _transactions
-    }
-}
-
-
 // ---------- Fake Model ------------
 data class TransactionEntity(
     val id: Int = 0,

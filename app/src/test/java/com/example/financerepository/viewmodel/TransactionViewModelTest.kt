@@ -77,7 +77,7 @@ class TransactionViewModelTest {
     }
 }
 
-// 更新後的 Fake Repository
+//Fake Repository
 class FakeTransactionRepository : TransactionRepository {
     private val _transactions = MutableStateFlow<List<TransactionEntity>>(emptyList())
     override suspend fun insertTransaction(transaction: TransactionEntity) {
