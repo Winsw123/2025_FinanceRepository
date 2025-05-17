@@ -46,10 +46,10 @@ class TransactionViewModel(
     private val _insertResult = MutableStateFlow<ResultStatus>(ResultStatus.Idle)
     val insertResult: StateFlow<ResultStatus> = _insertResult
     // function for adding transaction
-    fun addTransaction(title: String, amount: Double, type: TransactionType,category: String) {
+    fun addTransaction(title: String, amount: Double, type: TransactionType,category: String, id: Int = 0) {
         viewModelScope.launch {
             try {
-                val transaction = Transaction(title = title, amount = amount, type = type, category = category)
+                val transaction = Transaction(id = id, title = title, amount = amount, type = type, category = category)
                 repository.insertTransaction(transaction)
                 _insertResult.value = ResultStatus.Success("新增成功")
             } catch (e: Exception) {
@@ -58,6 +58,4 @@ class TransactionViewModel(
         }
     }
 }
-
-// ---------- Fake Repository Interface ----------
 
