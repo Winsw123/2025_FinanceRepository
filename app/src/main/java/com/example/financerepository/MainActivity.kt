@@ -3,27 +3,45 @@ package com.example.financerepository
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import com.example.financerepository.data.db.AppDatabase
+import com.example.financerepository.repository.TransactionRepositoryImpl
 import com.example.financerepository.ui.theme.FinanceRepositoryTheme
+import com.example.financerepository.viewmodel.TransactionViewModel
+import com.example.financerepository.viewmodel.TransactionViewModelFactory
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material3.*
+import com.example.financerepository.ui.screen.*
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        val dao = AppDatabase.getDatabase(applicationContext).transactionDao()
+        val repository = TransactionRepositoryImpl(dao)
+        val viewModelFactory = TransactionViewModelFactory(repository)
+        val viewModel: TransactionViewModel = ViewModelProvider(this, viewModelFactory)[TransactionViewModel::class.java]
+
         setContent {
             FinanceRepositoryTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    MainScreen(viewModel)
                 }
             }
         }
@@ -31,17 +49,78 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun MainScreen(viewModel: TransactionViewModel) {
+    var selectedTab by remember { mutableStateOf(0) }
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "總覽") },
+                    label = { Text("總覽") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    icon = { Icon(Icons.Default.AttachMoney, contentDescription = "預算") },
+                    label = { Text("預算") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    icon = { Icon(Icons.AutoMirrored. Filled.List, contentDescription = "交易") },
+                    label = { Text("交易") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    icon = { Icon(Icons.Default.SwapHoriz, contentDescription = "轉帳") },
+                    label = { Text("轉帳") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 4,
+                    onClick = { selectedTab = 4 },
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "設定") },
+                    label = { Text("設定") }
+                )
+            }
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            when (selectedTab) {
+                0 -> DashboardFragment(viewModel)
+                1 -> BudgetFragment(viewModel)
+                2 -> TransactionFragment(viewModel)
+                3 -> TransferFragment(viewModel)
+                4 -> SettingsFragment()
+            }
+        }
+    }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    FinanceRepositoryTheme {
-        Greeting("Android")
-    }
+fun SettingsFragment() {
+    TODO("Not yet implemented")
+}
+
+@Composable
+fun TransferFragment(viewModel: TransactionViewModel) {
+    TODO("Not yet implemented")
+}
+
+@Composable
+fun TransactionFragment(viewModel: TransactionViewModel) {
+
+}
+
+@Composable
+fun BudgetFragment(viewModel: TransactionViewModel) {
+
+}
+
+@Composable
+fun DashboardFragment(viewModel: TransactionViewModel) {
+
 }
