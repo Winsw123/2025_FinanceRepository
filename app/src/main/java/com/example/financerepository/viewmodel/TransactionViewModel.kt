@@ -3,6 +3,7 @@ package com.example.financerepository.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.financerepository.data.model.Category
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,7 +47,7 @@ class TransactionViewModel(
     private val _insertResult = MutableStateFlow<ResultStatus>(ResultStatus.Idle)
     val insertResult: StateFlow<ResultStatus> = _insertResult
     // function for adding transaction
-    fun addTransaction(title: String, amount: Double, type: TransactionType,category: String, id: Int = 0) {
+    fun addTransaction(title: String, amount: Double, type: TransactionType,category: Category, id: Int = 0) {
         viewModelScope.launch {
             try {
                 val transaction = Transaction(id = id, title = title, amount = amount, type = type, category = category)
