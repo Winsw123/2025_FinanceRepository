@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Margin
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.*
@@ -62,8 +63,8 @@ fun MainScreen(viewModel: TransactionViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.AttachMoney, contentDescription = "預算") },
-                    label = { Text("預算") }
+                    icon = { Icon(Icons.Default.AttachMoney, contentDescription = "帳本") },
+                    label = { Text("帳本") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
@@ -74,8 +75,8 @@ fun MainScreen(viewModel: TransactionViewModel) {
                 NavigationBarItem(
                     selected = selectedTab == 3,
                     onClick = { selectedTab = 3 },
-                    icon = { Icon(Icons.Default.SwapHoriz, contentDescription = "轉帳") },
-                    label = { Text("轉帳") }
+                    icon = { Icon(Icons.Default.Margin, contentDescription = "股票") },
+                    label = { Text("股票") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 4,
@@ -89,36 +90,11 @@ fun MainScreen(viewModel: TransactionViewModel) {
         Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTab) {
                 0 -> DashboardFragment(viewModel)
-                1 -> BudgetFragment(viewModel)
+                1 -> LedgerFragment(viewModel)
                 2 -> TransactionFragment(viewModel)
-                3 -> TransferFragment(viewModel)
+                3 -> StockFragment()
                 4 -> SettingsFragment()
             }
         }
     }
-}
-
-@Composable
-fun SettingsFragment() {
-    TODO("Not yet implemented")
-}
-
-@Composable
-fun TransferFragment(viewModel: TransactionViewModel) {
-    TODO("Not yet implemented")
-}
-
-@Composable
-fun TransactionFragment(viewModel: TransactionViewModel) {
-
-}
-
-@Composable
-fun BudgetFragment(viewModel: TransactionViewModel) {
-
-}
-
-@Composable
-fun DashboardFragment(viewModel: TransactionViewModel) {
-
 }
