@@ -10,10 +10,14 @@ data class Transaction(
     val title: String,
     val amount: Double,
     val type: TransactionType, // INCOME or EXPENSE
-    val category: String,
+    val category: Category,
     val timestamp: Long = System.currentTimeMillis()
 )
 
 enum class TransactionType {
     INCOME, EXPENSE
+}
+
+enum class Category{
+    FOOD, SHOPPING, DAILY_NECESSITIES, MEDICAL, SOCIAL, TRAFFIC, ENTERTAINMENT, STUDY, OTHER
 }

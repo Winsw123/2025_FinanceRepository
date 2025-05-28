@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.example.financerepository.data.dao.TransactionDao
 import com.example.financerepository.data.db.AppDatabase
+import com.example.financerepository.data.model.Category
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
 import kotlinx.coroutines.flow.first
@@ -49,7 +50,7 @@ class TransactionDaoTest {
             title = "Sample",
             amount = 100.0,
             type = TransactionType.EXPENSE,
-            category = "Test"
+            category = Category.OTHER
         )
 
         val transaction2 = Transaction(
@@ -57,7 +58,7 @@ class TransactionDaoTest {
             title = "Sample1",
             amount = 100222.0,
             type = TransactionType.EXPENSE,
-            category = "Test"
+            category = Category.OTHER
         )
         dao.insertTransaction(transaction)
         dao.insertTransaction(transaction2)
@@ -73,7 +74,7 @@ class TransactionDaoTest {
             title = "DeleteMe",
             amount = 50.0,
             type = TransactionType.EXPENSE,
-            category = "Test"
+            category = Category.OTHER
         )
         dao.insertTransaction(transaction)
         dao.deleteTransaction(transaction)
