@@ -17,6 +17,7 @@ lifecycleViewmodelComposeVersion = "2.7.0"
 room = "2.7.1"
 ksp = "2.1.20-2.0.1" # need to check the latest version in official website
 roomTesting = "2.7.1"
+junitKtx = "1.2.1"
 
 
 [libraries]
@@ -45,6 +46,7 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 
 
 [plugins]

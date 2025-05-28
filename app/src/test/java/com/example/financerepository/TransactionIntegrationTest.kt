@@ -1,5 +1,6 @@
 package com.example.financerepository
 
+import com.example.financerepository.data.model.Category
 import com.example.financerepository.viewmodel.TransactionViewModel
 import com.example.financerepository.repository.TransactionRepositoryImpl
 import com.example.financerepository.data.model.TransactionType
@@ -50,14 +51,14 @@ class TransactionIntegrationTest {
             title = "Test Item",
             amount = 999.0,
             type = TransactionType.EXPENSE,
-            category = "Other",
+            category = Category.OTHER,
             id = 1
         )
         viewModel.addTransaction(
             title = "Test Item2",
             amount = 999.0,
             type = TransactionType.EXPENSE,
-            category = "Other",
+            category = Category.OTHER,
             id = 2
         )
 
@@ -82,8 +83,8 @@ class TransactionIntegrationTest {
         }
 
         // 加入兩筆
-        viewModel.addTransaction("Delete Me", 500.0, TransactionType.EXPENSE, "Temp", id = 10)
-        viewModel.addTransaction("Keep Me", 1000.0, TransactionType.EXPENSE, "Important", id = 20)
+        viewModel.addTransaction("Delete Me", 500.0, TransactionType.EXPENSE, Category.OTHER, id = 10)
+        viewModel.addTransaction("Keep Me", 1000.0, TransactionType.EXPENSE, Category.FOOD, id = 20)
         advanceUntilIdle()
 
         // 取得並刪除 id = 10
