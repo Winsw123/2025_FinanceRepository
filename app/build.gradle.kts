@@ -53,6 +53,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx.v270)
+    implementation(libs.charts.v024)
+    implementation (libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+    implementation (libs.mpandroidchart)
     // Room with KSP
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

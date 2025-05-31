@@ -1,6 +1,7 @@
 package com.example.financerepository.viewmodel
 
 
+import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.financerepository.data.model.Category
@@ -10,11 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
-
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
+import com.example.financerepository.data.model.isThisMonth
 import com.example.financerepository.repository.TransactionRepositoryImpl
-
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.map
 // adding or deleting Result
 sealed class ResultStatus {
     object Idle : ResultStatus()
@@ -30,6 +32,7 @@ class TransactionViewModel(
     val transactions: StateFlow<List<Transaction>> =
         repository.getAllTransactions()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     //repository delete function
     private val _deleteResult = MutableStateFlow<ResultStatus>(ResultStatus.Idle)
     val deleteResult: StateFlow<ResultStatus> = _deleteResult
@@ -58,6 +61,24 @@ class TransactionViewModel(
             }
         }
     }
+    //calculate month expense
+    val MonthExpense = transactions
+        .map { list ->
+            list.filter { it.type == TransactionType.EXPENSE && it.isThisMonth() }
+                .groupBy { it.category }
+                .mapValues { entry -> entry.value.sumOf { it.amount } }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    // calculate month income
+    val MonthIncome = transactions
+        .map { list ->
+            list.filter { it.type == TransactionType.INCOME && it.isThisMonth() }
+                .groupBy { it.category }
+                .mapValues { entry -> entry.value.sumOf { it.amount } }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+
 
 }
 
