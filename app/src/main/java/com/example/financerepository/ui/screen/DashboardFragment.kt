@@ -1,10 +1,6 @@
 package com.example.financerepository.ui.screen
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,19 +18,19 @@ import androidx.compose.ui.graphics.toArgb
 import com.example.financerepository.viewmodel.TransactionViewModel
 import com.github.mikephil.charting.charts.PieChart
 import androidx.compose.foundation.layout.offset
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
@@ -43,17 +39,16 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-import androidx.core.graphics.component1
-import androidx.core.graphics.component2
-import androidx.compose.runtime.mutableStateOf
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun DashboardFragment(viewModel: TransactionViewModel) {
 //pie chart part
-    val expense by viewModel.MonthExpense.collectAsState()
-    val totalExpense =  expense.values.sum().toFloat()
-    val income by viewModel.MonthIncome.collectAsState()
+    val expense by viewModel.monthExpense.collectAsState()
+    val expenseForLineChart by viewModel.monthExpenseGroupByDay.collectAsState()
+    val totalExpense = expense.values.sum().toFloat()
+    val income by viewModel.monthIncome.collectAsState()
+    val incomeForLineChart by viewModel.monthIncomeGroupByDay.collectAsState()
     val totalIncome = income.values.sum().toFloat()
     val pagerState = rememberPagerState() // Pager state to manage the current page
     val pages = listOf("Pie Chart", "Bar Chart", "Line Chart")
@@ -113,14 +108,81 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
                     )
                 }
                 1 -> {
-                    Text(
-                        text = "Total Expense: $${totalExpense}",
-                        style = TextStyle(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(top = 32.dp)
+
+                    val incomeEntries = incomeForLineChart.entries.map { (day, amount) ->
+                        Entry(day.toFloat(), amount.toFloat())
+                    }.sortedBy { it.x }
+                    val expenseEntries = expenseForLineChart.entries.map { (day, amount) ->
+                        Entry(day.toFloat(), amount.toFloat())
+                    }.sortedBy { it.x }
+
+                    val incomeDataSet = LineDataSet( incomeEntries, "Daily Income").apply {
+                        color = Color.Blue.toArgb()
+                        valueTextSize = 12f
+                        lineWidth = 2f
+                        circleRadius = 4f
+                        setCircleColor(Color.Blue.toArgb())
+                        setDrawValues(false)
+                    }
+                    val expenseDataSet = LineDataSet(expenseEntries, "Daily Expense").apply {
+                        color = Color.Red.toArgb()
+                        valueTextSize = 12f
+                        lineWidth = 2f
+                        circleRadius = 4f
+                        setCircleColor(Color.Red.toArgb())
+                        setDrawValues(false)
+                    }
+                    val lineData = LineData(incomeDataSet,expenseDataSet)
+                    AndroidView(
+                        factory = { context ->
+                            LineChart(context).apply {
+                                // 設置 Line 數據
+                                data = lineData
+                                description.isEnabled = false
+                                legend.isEnabled = false
+                                animateX(1000)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                            .padding(top = 32.dp)
+                            .offset(y = (-80).dp)
                     )
 
                 }
                 2 -> {
+                    val expenseEntries = expense.entries.mapIndexed { index, entry ->
+                        BarEntry(index.toFloat(), entry.value.toFloat())
+                    }
+                    val expenseLabels = expense.keys.toList()
+
+                    val expenseBarDataSet = BarDataSet(expenseEntries, "Expense by Category").apply {
+                        color = Color.Blue.toArgb()
+                        valueTextSize = 12f
+                    }
+
+                    val barData = BarData(expenseBarDataSet)
+
+                    AndroidView(factory = { context ->
+                        BarChart(context).apply {
+                            data = barData
+                            val labelStrings = expenseLabels.map { it.name }
+                            // X 軸 label 設定
+                            xAxis.valueFormatter = IndexAxisValueFormatter(labelStrings)
+                            xAxis.position = XAxis.XAxisPosition.BOTTOM
+                            xAxis.granularity = 1f
+                            xAxis.setDrawGridLines(false)
+
+                            axisLeft.axisMinimum = 0f
+                            axisRight.isEnabled = false
+                            description.isEnabled = false
+                            legend.isEnabled = false
+                            animateY(1000)
+                        }
+                    }, modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp))
 
                 }
             }
@@ -130,7 +192,7 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
             pagerState = pagerState,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(16.dp),
+                .offset(y = (-10).dp),
             activeColor = Color.Cyan
         )
     }

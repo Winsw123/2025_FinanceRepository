@@ -14,9 +14,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
 import com.example.financerepository.data.model.isThisMonth
+import com.example.financerepository.data.model.toDayOfMonth
 import com.example.financerepository.repository.TransactionRepositoryImpl
 import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.map
+import kotlin.time.Duration.Companion.days
+
 // adding or deleting Result
 sealed class ResultStatus {
     object Idle : ResultStatus()
@@ -62,7 +65,7 @@ class TransactionViewModel(
         }
     }
     //calculate month expense
-    val MonthExpense = transactions
+    val monthExpense = transactions
         .map { list ->
             list.filter { it.type == TransactionType.EXPENSE && it.isThisMonth() }
                 .groupBy { it.category }
@@ -70,15 +73,26 @@ class TransactionViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
     // calculate month income
-    val MonthIncome = transactions
+    val monthIncome = transactions
         .map { list ->
             list.filter { it.type == TransactionType.INCOME && it.isThisMonth() }
                 .groupBy { it.category }
                 .mapValues { entry -> entry.value.sumOf { it.amount } }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
-
-
-
+    val monthExpenseGroupByDay = transactions
+        .map { list ->
+            list.filter { it.type == TransactionType.EXPENSE && it.isThisMonth() }
+                .groupBy { it.timestamp.toDayOfMonth() }
+                .mapValues { entry -> entry.value.sumOf { it.amount } }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    val monthIncomeGroupByDay = transactions
+        .map { list ->
+            list.filter { it.type == TransactionType.INCOME && it.isThisMonth() }
+                .groupBy { it.timestamp.toDayOfMonth() }
+                .mapValues { entry -> entry.value.sumOf { it.amount } }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 }
 

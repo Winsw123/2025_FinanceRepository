@@ -34,3 +34,9 @@ fun Transaction.isThisMonth(): Boolean {
 
     return nowYear == transYear && nowMonth == transMonth
 }
+
+fun Long.toDayOfMonth(): Int {
+    val calendar = Calendar.getInstance()
+    calendar.timeInMillis = this
+    return calendar.get(Calendar.DAY_OF_MONTH)
+}
