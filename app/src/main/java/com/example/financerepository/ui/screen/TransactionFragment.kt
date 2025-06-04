@@ -1,8 +1,7 @@
 package com.example.financerepository.ui.screen
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -16,10 +15,11 @@ import java.util.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun TransactionFragment(viewModel: TransactionViewModel) {
-    val transactions by viewModel.transactions.collectAsState()
+    val transactions by viewModel.addedTransactions.collectAsState()
 
     var selectedAccount by remember { mutableStateOf(Account.CASH) }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
@@ -37,6 +37,7 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
 
     Column(modifier = Modifier
         .fillMaxSize()
+        .verticalScroll(rememberScrollState())
         .padding(12.dp)) {
 
         Button(
@@ -55,8 +56,15 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
                 ).show()
             }, modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = Date(selectedDate).toString().substring(0, 10))
+            val formattedDate = remember(selectedDate) {
+                val format = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                format.format(Date(selectedDate))
+            }
+            Text(text = formattedDate)
+
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text("帳戶名稱")
         AccountSelector(selectedAccount) { selectedAccount = it }
@@ -87,8 +95,7 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
             }
         }
 
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
             value = amount,
@@ -128,15 +135,13 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
             Text("新增交易")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        Text("交易紀錄", style = MaterialTheme.typography.titleLarge)
-        LazyColumn {
-            items(transactions) { tx ->
-                TransactionItem(transaction = tx, onDelete = {
-                    viewModel.deleteTransaction(it)
-                })
-            }
+        Text("交易紀錄")
+        transactions.reversed().forEach { tx ->
+            TransactionItem(transaction = tx, onDelete = {
+                viewModel.deleteTransaction(it)
+            })
         }
     }
 }
@@ -157,7 +162,7 @@ fun AccountSelector(
                     ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                 else ButtonDefaults.outlinedButtonColors()
             ) {
-                Text(account.name)
+                Text(account.displayName)
             }
         }
     }
@@ -179,7 +184,7 @@ fun TransactionTypeSelector(
                     ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                 else ButtonDefaults.outlinedButtonColors()
             ) {
-                Text(type.name)
+                Text(type.displayName)
             }
         }
     }
@@ -231,7 +236,7 @@ fun TargetAccountSelector(
                     ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                 else ButtonDefaults.outlinedButtonColors()
             ) {
-                Text(account.name)
+                Text(account.displayName)
             }
         }
     }

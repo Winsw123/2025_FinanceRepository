@@ -2,7 +2,6 @@ package com.example.financerepository.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.*
 
 @Entity(tableName = "transactions")
 data class Transaction(
@@ -16,13 +15,17 @@ data class Transaction(
     val targetAccount: Account? = null
 )
 
-enum class Account {
-    CASH, BANK, CREDIT_CARD
+enum class Account(val displayName: String) {
+    CASH("現金"),
+    BANK("銀行"),
+    CREDIT_CARD("信用卡")
 }
 
 
-enum class TransactionType {
-    INCOME, EXPENSE, TRANSFER
+enum class TransactionType(val displayName: String) {
+    INCOME("收入"),
+    EXPENSE("支出"),
+    TRANSFER("轉帳")
 }
 
 enum class Category(val displayName: String, val type: TransactionType) {

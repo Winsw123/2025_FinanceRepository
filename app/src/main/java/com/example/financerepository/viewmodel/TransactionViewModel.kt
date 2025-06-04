@@ -31,6 +31,11 @@ class TransactionViewModel(
     val transactions: StateFlow<List<Transaction>> =
         repository.getAllTransactions()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // for TransactionFragment
+    private val _addedTransactions = MutableStateFlow<List<Transaction>>(emptyList())
+    val addedTransactions: StateFlow<List<Transaction>> = _addedTransactions
+
     //repository delete function
     private val _deleteResult = MutableStateFlow<ResultStatus>(ResultStatus.Idle)
     val deleteResult: StateFlow<ResultStatus> = _deleteResult
@@ -38,6 +43,7 @@ class TransactionViewModel(
         viewModelScope.launch {
             try {
                 repository.deleteTransaction(transaction)
+                _addedTransactions.value = _addedTransactions.value - transaction
                 _deleteResult.value = ResultStatus.Success("刪除成功")
             } catch (e: Exception) {
                 _deleteResult.value = ResultStatus.Error("刪除失敗：${e.message}")
@@ -71,6 +77,7 @@ class TransactionViewModel(
                     timestamp = timestamp
                 )
                 repository.insertTransaction(transaction)
+                _addedTransactions.value = _addedTransactions.value + transaction
                 _insertResult.value = ResultStatus.Success("新增成功")
             } catch (e: Exception) {
                 _insertResult.value = ResultStatus.Error("新增失敗：${e.message}")
