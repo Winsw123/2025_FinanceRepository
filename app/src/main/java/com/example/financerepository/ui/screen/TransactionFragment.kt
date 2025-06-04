@@ -16,6 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun TransactionFragment(viewModel: TransactionViewModel) {
@@ -63,39 +66,40 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
             Text(text = formattedDate)
 
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text("帳戶名稱")
+        Spacer(modifier = Modifier.height(4.dp))
         AccountSelector(selectedAccount) { selectedAccount = it }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text("交易類型")
+        Spacer(modifier = Modifier.height(4.dp))
         TransactionTypeSelector(selectedType) {
             selectedType = it
             selectedCategory = null
             selectedTargetAccount = null
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         when (selectedType) {
             TransactionType.INCOME -> {
                 Text("收入類別")
+                Spacer(modifier = Modifier.height(4.dp))
                 CategorySelector(incomeCategories, selectedCategory) { selectedCategory = it }
             }
             TransactionType.EXPENSE -> {
                 Text("支出類別")
+                Spacer(modifier = Modifier.height(4.dp))
                 CategorySelector(expenseCategories, selectedCategory) { selectedCategory = it }
             }
             TransactionType.TRANSFER -> {
                 Text("目標帳戶")
+                Spacer(modifier = Modifier.height(4.dp))
                 TargetAccountSelector(selectedAccount, selectedTargetAccount) { selectedTargetAccount = it }
             }
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         OutlinedTextField(
             value = amount,
@@ -103,7 +107,6 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
             label = { Text("金額") },
             modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(12.dp))
 
         Button(
@@ -112,7 +115,7 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
                 val cat = selectedCategory ?: Category.OTHERE
                 val title = when (selectedType) {
                     TransactionType.TRANSFER -> "${selectedAccount.name} ➜ ${selectedTargetAccount?.name}"
-                    else -> cat.name
+                    else -> cat.displayName
                 }
 
                 viewModel.addTransaction(
@@ -134,10 +137,17 @@ fun TransactionFragment(viewModel: TransactionViewModel) {
         ) {
             Text("新增交易")
         }
+        Spacer(modifier = Modifier.height(4.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Divider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = Color.LightGray,
+            thickness = 1.dp
+        )
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text("交易紀錄")
+        Spacer(modifier = Modifier.height(4.dp))
         transactions.reversed().forEach { tx ->
             TransactionItem(transaction = tx, onDelete = {
                 viewModel.deleteTransaction(it)
@@ -260,9 +270,8 @@ fun TransactionItem(transaction: Transaction, onDelete: (Transaction) -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(text = "${transaction.type} - \$${transaction.amount}")
-                Text(text = "${transaction.title}")
-                Text(text = "$dateString", style = MaterialTheme.typography.bodySmall)
+                Text(text = "${transaction.title} - \$${transaction.amount}")
+                Text(text = "$dateString ${transaction.type.displayName}", style = MaterialTheme.typography.bodySmall)
             }
             IconButton(onClick = { onDelete(transaction) }) {
                 Icon(Icons.Default.Delete, contentDescription = "刪除")
