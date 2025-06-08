@@ -73,5 +73,5 @@ dependencies {
     androidTestImplementation(libs.androidx.core.testing)
     implementation(libs.androidx.material.icons.extended)
 
-
+    implementation(libs.material3)
 }
