@@ -5,6 +5,7 @@ import com.example.financerepository.data.model.Transaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 
 class FakeTransactionDao : TransactionDao {
 
@@ -46,6 +47,13 @@ class FakeTransactionDao : TransactionDao {
         if (index >= 0) {
             transactionList[index] = transaction
             updateFlow()
+        }
+    }
+
+    override fun getTransactionsByDate(start: Long, end: Long): Flow<List<Transaction>> {
+        return transactionsFlow.map { list ->
+            list.filter { it.timestamp in start..end }
+                .sortedByDescending { it.timestamp }
         }
     }
 }
