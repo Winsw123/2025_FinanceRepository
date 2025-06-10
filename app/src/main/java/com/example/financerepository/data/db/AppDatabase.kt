@@ -3,10 +3,12 @@ package com.example.financerepository.data.db
 import android.content.Context
 import androidx.room.*
 import com.example.financerepository.data.dao.TransactionDao
+import com.example.financerepository.data.model.Account
+import com.example.financerepository.data.model.Category
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
 
-@Database(entities = [Transaction::class], version = 1, exportSchema = false)
+@Database(entities = [Transaction::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -22,7 +24,8 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "finance_db"
-                ).build()
+                ).fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }
@@ -37,4 +40,16 @@ class Converters {
 
     @TypeConverter
     fun toTransactionType(type: String): TransactionType = TransactionType.valueOf(type)
+
+    @TypeConverter
+    fun fromAccount(account: Account): String = account.name
+
+    @TypeConverter
+    fun toAccount(name: String): Account = Account.valueOf(name)
+
+    @TypeConverter
+    fun fromCategory(category: Category): String = category.name
+
+    @TypeConverter
+    fun toCategory(name: String): Category = Category.valueOf(name)
 }
