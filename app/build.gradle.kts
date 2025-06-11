@@ -77,5 +77,10 @@ dependencies {
     androidTestImplementation(libs.androidx.core.testing)
     implementation(libs.androidx.material.icons.extended)
 
+    implementation(libs.material3)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.kotlinx.coroutines.test.v171) // 版本視你用的 kotlin/coroutines 而定
+    testImplementation(libs.turbine)
 
 }

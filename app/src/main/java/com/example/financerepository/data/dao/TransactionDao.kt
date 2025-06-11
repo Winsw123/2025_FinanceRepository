@@ -21,4 +21,8 @@ interface TransactionDao {
 
     @Update
     suspend fun updateTransaction(transaction: Transaction)
+
+    @Query("SELECT * FROM transactions WHERE timestamp BETWEEN :start AND :end ORDER BY timestamp DESC")
+    fun getTransactionsByDate(start: Long, end: Long): Flow<List<Transaction>>
+
 }

@@ -5,7 +5,6 @@ import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.financerepository.data.model.Category
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -87,6 +86,18 @@ class TransactionViewModel(
                 _insertResult.value = ResultStatus.Success("新增成功")
             } catch (e: Exception) {
                 _insertResult.value = ResultStatus.Error("新增失敗：${e.message}")
+            }
+        }
+    }
+    // categorized transaction data by date
+    private val _selectedDateTransactions = MutableStateFlow<List<Transaction>>(emptyList())
+    val selectedDateTransactions: StateFlow<List<Transaction>> = _selectedDateTransactions
+
+    // load data by date
+    fun loadTransactionsByDate(year: Int, month: Int, day: Int) {
+        viewModelScope.launch {
+            repository.getTransactionsByDate(year, month, day).collect {
+                _selectedDateTransactions.value = it
             }
         }
     }
