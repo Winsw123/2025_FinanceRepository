@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun TransactionFragment(viewModel: TransactionViewModel) {
-    val transactions by viewModel.addedTransactions.collectAsState()
+    val transactions by viewModel.transactions.collectAsState()
 
     var selectedAccount by remember { mutableStateOf(Account.CASH) }
     var selectedType by remember { mutableStateOf(TransactionType.EXPENSE) }
