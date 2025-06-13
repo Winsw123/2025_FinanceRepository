@@ -1,8 +1,6 @@
 package com.example.financerepository.viewmodel
 
 
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.financerepository.data.datastore.DataStoreManager
@@ -16,6 +14,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
 import com.example.financerepository.repository.TransactionRepositoryImpl
+import java.time.LocalDate
+import java.time.ZoneId
 
 // adding or deleting Result
 sealed class ResultStatus {
@@ -50,10 +50,35 @@ class TransactionViewModel(
     private val _insertResult = MutableStateFlow<ResultStatus>(ResultStatus.Idle)
     val insertResult: StateFlow<ResultStatus> = _insertResult
     // function for adding transaction
-    fun addTransaction(title: String, amount: Double, type: TransactionType,category: Category, id: Int = 0) {
+//    fun addTransaction(title: String, amount: Double, type: TransactionType,category: Category, id: Int = 0) {
+//        viewModelScope.launch {
+//            try {
+//                val transaction = Transaction(id = id, title = title, amount = amount, type = type, category = category)
+//                repository.insertTransaction(transaction)
+//                _insertResult.value = ResultStatus.Success("新增成功")
+//            } catch (e: Exception) {
+//                _insertResult.value = ResultStatus.Error("新增失敗：${e.message}")
+//            }
+//        }
+//    }
+    fun addTransaction(
+        title: String,
+        amount: Double,
+        type: TransactionType,
+        category: Category,
+        timestamp: Long = System.currentTimeMillis(), // 新增這個參數
+        id: Int = 0
+    ) {
         viewModelScope.launch {
             try {
-                val transaction = Transaction(id = id, title = title, amount = amount, type = type, category = category)
+                val transaction = Transaction(
+                    id = id,
+                    title = title,
+                    amount = amount,
+                    type = type,
+                    category = category,
+                    timestamp = timestamp // 使用自訂 timestamp
+                )
                 repository.insertTransaction(transaction)
                 _insertResult.value = ResultStatus.Success("新增成功")
             } catch (e: Exception) {
@@ -66,29 +91,76 @@ class TransactionViewModel(
     val selectedDateTransactions: StateFlow<List<Transaction>> = _selectedDateTransactions
 
     // load data by date
-    fun loadTransactionsByDate(year: Int, month: Int, day: Int) {
-        viewModelScope.launch {
-            repository.getTransactionsByDate(year, month, day).collect {
-                _selectedDateTransactions.value = it
-            }
-        }
-    }
+//    fun loadTransactionsByDate(year: Int, month: Int, day: Int) {
+//        viewModelScope.launch {
+//            repository.getTransactionsByDate(year, month, day).collect {
+//                _selectedDateTransactions.value = it
+//            }
+//        }
+//    }
 
-    private val _monthlyBudget = MutableStateFlow(5000)
-    val monthlyBudget: StateFlow<Int> = _monthlyBudget
-
-    init {
-        viewModelScope.launch {
-            dataStore.monthlyBudgetFlow.collect {
-                _monthlyBudget.value = it
-            }
-        }
-    }
+    val monthlyBudget: StateFlow<Int> = dataStore.monthlyBudgetFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5000)
 
     fun setMonthlyBudget(newBudget: Int) {
         viewModelScope.launch {
             dataStore.saveMonthlyBudget(newBudget)
         }
+    }
+    // 新增：該月交易
+    private val _monthlyTransactions = MutableStateFlow<List<Transaction>>(emptyList())
+    val monthlyTransactions: StateFlow<List<Transaction>> = _monthlyTransactions
+
+    // 讀取指定年月的交易
+    fun loadTransactionsByMonth(year: Int, month: Int) {
+        viewModelScope.launch {
+            val startTimestamp = getStartOfMonthTimestamp(year, month)
+            val endTimestamp = getEndOfMonthTimestamp(year, month)
+
+            repository.getTransactionsBetween(startTimestamp, endTimestamp)
+                .collect { list ->
+                    _monthlyTransactions.value = list
+                }
+        }
+    }
+
+
+    fun loadTransactionsByDate(year: Int, month: Int, day: Int) {
+        viewModelScope.launch {
+            val startTimestamp = getStartOfDayTimestamp(year, month, day)
+            val endTimestamp = getEndOfDayTimestamp(year, month, day)
+
+            repository.getTransactionsBetween(startTimestamp, endTimestamp)
+                .collect { list ->
+                    _selectedDateTransactions.value = list
+                }
+        }
+    }
+
+    // 範例：取得當月開始時間戳（毫秒）
+    private fun getStartOfMonthTimestamp(year: Int, month: Int): Long {
+        val firstDay = LocalDate.of(year, month, 1).atStartOfDay(ZoneId.systemDefault())
+        return firstDay.toInstant().toEpochMilli()
+    }
+
+    // 範例：取得當月結束時間戳（毫秒）
+    private fun getEndOfMonthTimestamp(year: Int, month: Int): Long {
+        val lastDay = LocalDate.of(year, month, 1).plusMonths(1).minusDays(1)
+            .atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault())
+        return lastDay.toInstant().toEpochMilli()
+    }
+
+    // 取得某日開始時間戳
+    private fun getStartOfDayTimestamp(year: Int, month: Int, day: Int): Long {
+        val dateTime = LocalDate.of(year, month, day).atStartOfDay(ZoneId.systemDefault())
+        return dateTime.toInstant().toEpochMilli()
+    }
+
+    // 取得某日結束時間戳
+    private fun getEndOfDayTimestamp(year: Int, month: Int, day: Int): Long {
+        val dateTime = LocalDate.of(year, month, day).atTime(23, 59, 59, 999_999_999)
+            .atZone(ZoneId.systemDefault())
+        return dateTime.toInstant().toEpochMilli()
     }
 }
 

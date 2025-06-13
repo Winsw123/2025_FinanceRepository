@@ -2,9 +2,12 @@ package com.example.financerepository.repository
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.room.Query
 import com.example.financerepository.data.dao.TransactionDao
 import com.example.financerepository.data.model.Transaction
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Calendar
 
 class TransactionRepositoryImpl(
@@ -49,6 +52,22 @@ class TransactionRepositoryImpl(
         val endMillis = endCal.timeInMillis - 1
 
         return dao.getTransactionsByDate(startMillis, endMillis)
+    }
+
+    fun getTransactionsByMonth(year: Int, month: Int): Flow<List<Transaction>> {
+        val startTimestamp = LocalDate.of(year, month, 1)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant().toEpochMilli()
+        val endTimestamp = LocalDate.of(year, month, 1)
+            .plusMonths(1)
+            .minusDays(1)
+            .atTime(23, 59, 59, 999_999_999)
+            .atZone(ZoneId.systemDefault())
+            .toInstant().toEpochMilli()
+        return dao.getTransactionsByDate(startTimestamp, endTimestamp)
+    }
+    fun getTransactionsBetween(start: Long, end: Long): Flow<List<Transaction>> {
+        return dao.getTransactionsByDate(start, end)
     }
 
 }
