@@ -79,4 +79,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test.v171) // 版本視你用的 kotlin/coroutines 而定
     testImplementation(libs.turbine)
 
+    implementation (libs.androidx.datastore.preferences) //用來存預算值，不用建表
 }
