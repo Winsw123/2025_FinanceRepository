@@ -53,6 +53,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx.v270)
+    implementation(libs.charts.v024)
+    implementation (libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+    implementation (libs.mpandroidchart)
+    implementation (libs.threetenabp)
     // Room with KSP
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -73,5 +78,10 @@ dependencies {
     androidTestImplementation(libs.androidx.core.testing)
     implementation(libs.androidx.material.icons.extended)
 
+    implementation(libs.material3)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
+    testImplementation(libs.kotlinx.coroutines.test.v171) // 版本視你用的 kotlin/coroutines 而定
+    testImplementation(libs.turbine)
 
 }
