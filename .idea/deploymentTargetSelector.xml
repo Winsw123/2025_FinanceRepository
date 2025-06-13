@@ -8,10 +8,10 @@
       <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="LedgerFragmentTest">
+      <SelectionState runConfigName="MainActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="MainActivity">
+      <SelectionState runConfigName="deleteTransaction_removesFromDb()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

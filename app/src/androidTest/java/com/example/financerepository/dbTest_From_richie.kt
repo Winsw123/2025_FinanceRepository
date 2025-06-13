@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.financerepository.data.dao.TransactionDao
 import com.example.financerepository.data.db.AppDatabase
+import com.example.financerepository.data.model.Account
 import com.example.financerepository.data.model.Category
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
@@ -44,7 +45,8 @@ class TransactionDaoTest {
             title = "Test Insert",
             amount = 123.0,
             type = TransactionType.EXPENSE,
-            category = Category.OTHER
+            category = Category.OTHERI,
+            account = Account.CASH
         )
 
         dao.insertTransaction(transaction)

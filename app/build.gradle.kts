@@ -57,6 +57,7 @@ dependencies {
     implementation (libs.accompanist.pager)
     implementation(libs.accompanist.pager.indicators)
     implementation (libs.mpandroidchart)
+    implementation (libs.threetenabp)
     // Room with KSP
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

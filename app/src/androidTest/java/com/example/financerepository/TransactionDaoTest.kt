@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.example.financerepository.data.dao.TransactionDao
 import com.example.financerepository.data.db.AppDatabase
+import com.example.financerepository.data.model.Account
 import com.example.financerepository.data.model.Category
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
@@ -50,7 +51,8 @@ class DbTestFromRichie {
             title = "Sample",
             amount = 100.0,
             type = TransactionType.EXPENSE,
-            category = Category.OTHER
+            category = Category.OTHERI,
+            account = Account.BANK
         )
 
         val transaction2 = Transaction(
@@ -58,7 +60,8 @@ class DbTestFromRichie {
             title = "Sample1",
             amount = 100222.0,
             type = TransactionType.EXPENSE,
-            category = Category.OTHER
+            category = Category.OTHERI,
+            account = Account.BANK
         )
         dao.insertTransaction(transaction)
         dao.insertTransaction(transaction2)
@@ -74,7 +77,8 @@ class DbTestFromRichie {
             title = "DeleteMe",
             amount = 50.0,
             type = TransactionType.EXPENSE,
-            category = Category.OTHER
+            category = Category.FOOD,
+            account =  Account.BANK
         )
         dao.insertTransaction(transaction)
         dao.deleteTransaction(transaction)

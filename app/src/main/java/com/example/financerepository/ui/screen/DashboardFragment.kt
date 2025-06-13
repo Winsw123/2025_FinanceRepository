@@ -1,10 +1,6 @@
 package com.example.financerepository.ui.screen
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,18 +39,18 @@ import com.google.accompanist.pager.rememberPagerState
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun DashboardFragment(viewModel: TransactionViewModel) {
-//pie chart part
     val expense by viewModel.monthExpense.collectAsState()
+    println(expense)
     val expenseForLineChart by viewModel.monthExpenseGroupByDay.collectAsState()
     val totalExpense = expense.values.sum().toFloat()
     val income by viewModel.monthIncome.collectAsState()
+    println(income)
     val incomeForLineChart by viewModel.monthIncomeGroupByDay.collectAsState()
     val totalIncome = income.values.sum().toFloat()
-    val pagerState = rememberPagerState() // Pager state to manage the current page
+    val pagerState = rememberPagerState()
     val pages = listOf("Pie Chart", "Bar Chart", "Line Chart")
 
     Column(modifier = Modifier.fillMaxSize()) {
-
         HorizontalPager(
             count = pages.size,
             state = pagerState,
@@ -62,37 +58,32 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
                 .fillMaxWidth()
                 .height(630.dp)
         ) { pageIndex ->
-            when(pageIndex) {
-                0 ->{
-                    //pie
+            when (pageIndex) {
+                0 -> {
                     AndroidView(
                         factory = { context ->
-                            PieChart(context).apply {
-                                // 設置 PieChart 數據
-                                val entries = listOf(
-                                    PieEntry(totalExpense, "Expense"),
-                                    PieEntry(totalIncome, "Income")
-                                )
-
-                                val dataSet = PieDataSet(entries, "Expenses and Income").apply {
-                                    // 設定每個 slice 顏色
-                                    colors = listOf(ComposeColor.Red.toArgb(), ComposeColor.Green.toArgb())
-                                    sliceSpace = 2f
-                                    valueTextSize = 14f
-                                    valueTextColor = Color.Black.toArgb()
-                                }
-
-                                val pieData = PieData(dataSet)
-                                this.data = pieData
-
-                                // setting pie
-                                this.centerText = "Monthly"
-                                this.setHoleColor(Color.Transparent.toArgb())
-                                this.description.isEnabled = false
-                                this.legend.isEnabled = false
-                                this.setUsePercentValues(true)
-                                this.animateY(1000)
-                                this.invalidate() // 刷新 PieChart
+                            PieChart(context)
+                        },
+                        update = { chart ->
+                            val entries = listOf(
+                                PieEntry(totalExpense, "Expense"),
+                                PieEntry(totalIncome, "Income")
+                            )
+                            val dataSet = PieDataSet(entries, "Expenses and Income").apply {
+                                colors = listOf(ComposeColor.Red.toArgb(), ComposeColor.Green.toArgb())
+                                sliceSpace = 2f
+                                valueTextSize = 14f
+                                valueTextColor = Color.Black.toArgb()
+                            }
+                            chart.apply {
+                                data = PieData(dataSet)
+                                setUsePercentValues(true)
+                                setHoleColor(Color.Transparent.toArgb())
+                                centerText = "Monthly"
+                                description.isEnabled = false
+                                legend.isEnabled = false
+                                invalidate()
+                                animateY(1000)
                             }
                         },
                         modifier = Modifier
@@ -103,12 +94,53 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
                     )
                     Text(
                         text = "Total Expense:${totalExpense}  Total Income:\$${totalIncome}",
-                        modifier = Modifier.padding(top = 100.dp).offset(y = 130.dp).offset(10.dp),
+                        modifier = Modifier
+                            .padding(top = 100.dp)
+                            .offset(y = 130.dp)
+                            .offset(10.dp),
                         style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     )
                 }
                 1 -> {
+                    val expenseEntries = expense.entries.mapIndexed { index, entry ->
+                        BarEntry(index.toFloat(), entry.value.toFloat())
+                    }
+                    val expenseLabels = expense.keys.toList()
 
+                    val expenseBarDataSet = BarDataSet(expenseEntries, "Expense by Category").apply {
+                        color = Color.Blue.toArgb()
+                        valueTextSize = 12f
+                    }
+
+                    val barData = BarData(expenseBarDataSet)
+
+                    AndroidView(
+                        factory = { context ->
+                            BarChart(context)
+                        },
+                        update = { chart ->
+                            val labelStrings = expenseLabels.map { it.name }
+                            chart.apply {
+                                data = barData
+                                xAxis.valueFormatter = IndexAxisValueFormatter(labelStrings)
+                                xAxis.position = XAxis.XAxisPosition.BOTTOM
+                                xAxis.granularity = 1f
+                                xAxis.setDrawGridLines(false)
+
+                                axisLeft.axisMinimum = 0f
+                                axisRight.isEnabled = false
+                                description.isEnabled = false
+                                legend.isEnabled = false
+                                invalidate()
+                                animateY(1000)
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    )
+                }
+                2 -> {
                     val incomeEntries = incomeForLineChart.entries.map { (day, amount) ->
                         Entry(day.toFloat(), amount.toFloat())
                     }.sortedBy { it.x }
@@ -116,7 +148,7 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
                         Entry(day.toFloat(), amount.toFloat())
                     }.sortedBy { it.x }
 
-                    val incomeDataSet = LineDataSet( incomeEntries, "Daily Income").apply {
+                    val incomeDataSet = LineDataSet(incomeEntries, "Daily Income").apply {
                         color = Color.Blue.toArgb()
                         valueTextSize = 12f
                         lineWidth = 2f
@@ -132,16 +164,17 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
                         setCircleColor(Color.Red.toArgb())
                         setDrawValues(false)
                     }
-                    val lineData = LineData(incomeDataSet,expenseDataSet)
+                    val lineData = LineData(incomeDataSet, expenseDataSet)
                     AndroidView(
                         factory = { context ->
-                            LineChart(context).apply {
-                                // 設置 Line 數據
-                                data = lineData
-                                description.isEnabled = false
-                                legend.isEnabled = false
-                                animateX(1000)
-                            }
+                            LineChart(context)
+                        },
+                        update = { chart ->
+                            chart.data = lineData
+                            chart.description.isEnabled = false
+                            chart.legend.isEnabled = true
+                            chart.invalidate()
+                            chart.animateX(1000)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -149,45 +182,9 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
                             .padding(top = 32.dp)
                             .offset(y = (-80).dp)
                     )
-
-                }
-                2 -> {
-                    val expenseEntries = expense.entries.mapIndexed { index, entry ->
-                        BarEntry(index.toFloat(), entry.value.toFloat())
-                    }
-                    val expenseLabels = expense.keys.toList()
-
-                    val expenseBarDataSet = BarDataSet(expenseEntries, "Expense by Category").apply {
-                        color = Color.Blue.toArgb()
-                        valueTextSize = 12f
-                    }
-
-                    val barData = BarData(expenseBarDataSet)
-
-                    AndroidView(factory = { context ->
-                        BarChart(context).apply {
-                            data = barData
-                            val labelStrings = expenseLabels.map { it.name }
-                            // X 軸 label 設定
-                            xAxis.valueFormatter = IndexAxisValueFormatter(labelStrings)
-                            xAxis.position = XAxis.XAxisPosition.BOTTOM
-                            xAxis.granularity = 1f
-                            xAxis.setDrawGridLines(false)
-
-                            axisLeft.axisMinimum = 0f
-                            axisRight.isEnabled = false
-                            description.isEnabled = false
-                            legend.isEnabled = false
-                            animateY(1000)
-                        }
-                    }, modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp))
-
                 }
             }
         }
-        // indicator
         HorizontalPagerIndicator(
             pagerState = pagerState,
             modifier = Modifier
@@ -197,5 +194,3 @@ fun DashboardFragment(viewModel: TransactionViewModel) {
         )
     }
 }
-
-

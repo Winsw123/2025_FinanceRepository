@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.financerepository.data.db.AppDatabase
+import com.example.financerepository.data.model.Account
 import com.example.financerepository.data.model.Category
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
@@ -47,7 +48,8 @@ class LedgerFragmentTest {
                     amount = 12.5,
                     type = TransactionType.EXPENSE,
                     category = Category.FOOD,
-                    timestamp = System.currentTimeMillis()
+                    timestamp = System.currentTimeMillis(),
+                    account = Account.BANK
                 )
             )
         }

@@ -19,6 +19,7 @@ import com.example.financerepository.data.model.Account
 import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.map
 import kotlin.time.Duration.Companion.days
+import org.threeten.bp.YearMonth
 
 // adding or deleting Result
 sealed class ResultStatus {
@@ -102,6 +103,9 @@ class TransactionViewModel(
         }
     }
 
+    fun loadMonthlyData(currentMonth: YearMonth?) {
+
+    }
 
     //calculate month expense
     val monthExpense = transactions
