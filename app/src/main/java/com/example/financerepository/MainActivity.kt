@@ -31,7 +31,7 @@ import com.example.financerepository.data.db.AppDatabase
 import com.example.financerepository.repository.TransactionRepositoryImpl
 import com.example.financerepository.ui.screen.DashboardFragment
 import com.example.financerepository.ui.screen.LedgerFragment
-import com.example.financerepository.ui.screen.SettingsFragment
+import com.example.financerepository.ui.screen.SettingFragment
 import com.example.financerepository.ui.screen.StockFragment
 import com.example.financerepository.ui.screen.TransactionFragment
 import com.example.financerepository.ui.theme.FinanceRepositoryTheme
@@ -104,7 +104,7 @@ fun MainScreen(viewModel: TransactionViewModel) {
                 1 -> LedgerFragment(viewModel)
                 2 -> TransactionFragment(viewModel)
                 3 -> StockFragment()
-                4 -> SettingsFragment(viewModel)
+                4 -> SettingFragment(viewModel)
             }
         }
     }
