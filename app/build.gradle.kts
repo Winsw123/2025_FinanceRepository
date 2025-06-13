@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.financerepository"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -80,4 +80,7 @@ dependencies {
     testImplementation(libs.turbine)
 
     implementation (libs.androidx.datastore.preferences) //用來存預算值，不用建表
+    implementation (libs.accompanist.pager)
+    implementation (libs.accompanist.pager.indicators)
+
 }
