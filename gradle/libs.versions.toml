@@ -1,4 +1,5 @@
 [versions]
+accompanistPager = "0.30.1"
 agp = "8.9.2"
 core = "1.6.1"
 coreTesting = "2.2.0"
@@ -27,6 +28,8 @@ turbine = "0.12.1"
 
 
 [libraries]
+accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistPager" }
+accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistPager" }
 androidx-core = { module = "androidx.test:core", version.ref = "core" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTesting" }
