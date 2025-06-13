@@ -1,8 +1,11 @@
 package com.example.financerepository.viewmodel
 
 
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.financerepository.data.datastore.DataStoreManager
 import com.example.financerepository.data.model.Category
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +25,8 @@ sealed class ResultStatus {
 }
 
 class TransactionViewModel(
-    private val repository: TransactionRepositoryImpl
+    private val repository: TransactionRepositoryImpl,
+    private val dataStore: DataStoreManager // 用來存預算值
 ) : ViewModel() {
 
     //Data from DAO
@@ -70,5 +74,21 @@ class TransactionViewModel(
         }
     }
 
+    private val _monthlyBudget = MutableStateFlow(5000)
+    val monthlyBudget: StateFlow<Int> = _monthlyBudget
+
+    init {
+        viewModelScope.launch {
+            dataStore.monthlyBudgetFlow.collect {
+                _monthlyBudget.value = it
+            }
+        }
+    }
+
+    fun setMonthlyBudget(newBudget: Int) {
+        viewModelScope.launch {
+            dataStore.saveMonthlyBudget(newBudget)
+        }
+    }
 }
 
