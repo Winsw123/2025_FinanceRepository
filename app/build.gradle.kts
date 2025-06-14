@@ -87,5 +87,4 @@ dependencies {
     implementation (libs.androidx.datastore.preferences) //用來存預算值，不用建表
     implementation (libs.accompanist.pager)
     implementation (libs.accompanist.pager.indicators)
-
 }
