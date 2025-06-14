@@ -1,7 +1,5 @@
 package com.example.financerepository.viewmodel
 
-
-import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.financerepository.data.datastore.DataStoreManager
@@ -22,9 +20,6 @@ import java.time.ZoneId
 import java.time.YearMonth
 import kotlinx.coroutines.flow.map
 import com.example.financerepository.data.model.Account
-import kotlinx.coroutines.flow.WhileSubscribed
-import kotlin.time.Duration.Companion.days
-
 
 // adding or deleting Result
 sealed class ResultStatus {
@@ -165,6 +160,12 @@ class TransactionViewModel(
         val dateTime = LocalDate.of(year, month, day).atStartOfDay(ZoneId.systemDefault())
         return dateTime.toInstant().toEpochMilli()
     }
+    // 取得某日結束時間戳
+    private fun getEndOfDayTimestamp(year: Int, month: Int, day: Int): Long {
+        val dateTime = LocalDate.of(year, month, day).atTime(23, 59, 59, 999_999_999)
+            .atZone(ZoneId.systemDefault())
+        return dateTime.toInstant().toEpochMilli()
+    }
 
     fun loadMonthlyData(currentMonth: YearMonth?) {
 
@@ -200,11 +201,5 @@ class TransactionViewModel(
                 .mapValues { entry -> entry.value.sumOf { it.amount } }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
-    // 取得某日結束時間戳
-    private fun getEndOfDayTimestamp(year: Int, month: Int, day: Int): Long {
-        val dateTime = LocalDate.of(year, month, day).atTime(23, 59, 59, 999_999_999)
-            .atZone(ZoneId.systemDefault())
-        return dateTime.toInstant().toEpochMilli()
-    }
 }
 
