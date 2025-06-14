@@ -3,30 +3,40 @@ package com.example.financerepository
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.ViewModelProvider
-import com.example.financerepository.data.db.AppDatabase
-import com.example.financerepository.repository.TransactionRepositoryImpl
-import com.example.financerepository.ui.theme.FinanceRepositoryTheme
-import com.example.financerepository.viewmodel.TransactionViewModel
-import com.example.financerepository.viewmodel.TransactionViewModelFactory
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Margin
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import com.example.financerepository.ui.screen.*
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.datastore.dataStore
+import androidx.lifecycle.ViewModelProvider
+import com.example.financerepository.data.datastore.DataStoreManager
+import com.example.financerepository.data.db.AppDatabase
+import com.example.financerepository.repository.TransactionRepositoryImpl
+import com.example.financerepository.ui.screen.DashboardFragment
+import com.example.financerepository.ui.screen.LedgerFragment
+import com.example.financerepository.ui.screen.SettingFragment
+import com.example.financerepository.ui.screen.StockFragment
+import com.example.financerepository.ui.screen.TransactionFragment
+import com.example.financerepository.ui.theme.FinanceRepositoryTheme
+import com.example.financerepository.viewmodel.TransactionViewModel
+import com.example.financerepository.viewmodel.TransactionViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -34,7 +44,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val dao = AppDatabase.getDatabase(applicationContext).transactionDao()
         val repository = TransactionRepositoryImpl(dao)
-        val viewModelFactory = TransactionViewModelFactory(repository)
+        val dataStore = DataStoreManager(applicationContext)
+        val viewModelFactory = TransactionViewModelFactory(repository, dataStore)
         val viewModel: TransactionViewModel = ViewModelProvider(this, viewModelFactory)[TransactionViewModel::class.java]
 
         setContent {
@@ -93,7 +104,7 @@ fun MainScreen(viewModel: TransactionViewModel) {
                 1 -> LedgerFragment(viewModel)
                 2 -> TransactionFragment(viewModel)
                 3 -> StockFragment()
-                4 -> SettingsFragment()
+                4 -> SettingFragment(viewModel)
             }
         }
     }

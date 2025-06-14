@@ -4,22 +4,27 @@ package com.example.financerepository.viewmodel
 import android.icu.util.Calendar
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.financerepository.data.datastore.DataStoreManager
 import com.example.financerepository.data.model.Category
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
+
 import com.example.financerepository.data.model.Transaction
 import com.example.financerepository.data.model.TransactionType
 import com.example.financerepository.data.model.isThisMonth
 import com.example.financerepository.data.model.toDayOfMonth
 import com.example.financerepository.repository.TransactionRepositoryImpl
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.YearMonth
+import kotlinx.coroutines.flow.map
 import com.example.financerepository.data.model.Account
 import kotlinx.coroutines.flow.WhileSubscribed
-import kotlinx.coroutines.flow.map
 import kotlin.time.Duration.Companion.days
-import org.threeten.bp.YearMonth
+
 
 // adding or deleting Result
 sealed class ResultStatus {
@@ -29,7 +34,8 @@ sealed class ResultStatus {
 }
 
 class TransactionViewModel(
-    private val repository: TransactionRepositoryImpl
+    private val repository: TransactionRepositoryImpl,
+    private val dataStore: DataStoreManager // 用來存預算值
 ) : ViewModel() {
 
     //Data from DAO
@@ -95,12 +101,69 @@ class TransactionViewModel(
     val selectedDateTransactions: StateFlow<List<Transaction>> = _selectedDateTransactions
 
     // load data by date
+//    fun loadTransactionsByDate(year: Int, month: Int, day: Int) {
+//        viewModelScope.launch {
+//            repository.getTransactionsByDate(year, month, day).collect {
+//                _selectedDateTransactions.value = it
+//            }
+//        }
+//    }
+
+    val monthlyBudget: StateFlow<Int> = dataStore.monthlyBudgetFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5000)
+
+    fun setMonthlyBudget(newBudget: Int) {
+        viewModelScope.launch {
+            dataStore.saveMonthlyBudget(newBudget)
+        }
+    }
+    // 新增：該月交易
+    private val _monthlyTransactions = MutableStateFlow<List<Transaction>>(emptyList())
+    val monthlyTransactions: StateFlow<List<Transaction>> = _monthlyTransactions
+
+    // 讀取指定年月的交易
+    fun loadTransactionsByMonth(year: Int, month: Int) {
+        viewModelScope.launch {
+            val startTimestamp = getStartOfMonthTimestamp(year, month)
+            val endTimestamp = getEndOfMonthTimestamp(year, month)
+
+            repository.getTransactionsBetween(startTimestamp, endTimestamp)
+                .collect { list ->
+                    _monthlyTransactions.value = list
+                }
+        }
+    }
+
+
     fun loadTransactionsByDate(year: Int, month: Int, day: Int) {
         viewModelScope.launch {
-            repository.getTransactionsByDate(year, month, day).collect {
-                _selectedDateTransactions.value = it
-            }
+            val startTimestamp = getStartOfDayTimestamp(year, month, day)
+            val endTimestamp = getEndOfDayTimestamp(year, month, day)
+
+            repository.getTransactionsBetween(startTimestamp, endTimestamp)
+                .collect { list ->
+                    _selectedDateTransactions.value = list
+                }
         }
+    }
+
+    // 範例：取得當月開始時間戳（毫秒）
+    private fun getStartOfMonthTimestamp(year: Int, month: Int): Long {
+        val firstDay = LocalDate.of(year, month, 1).atStartOfDay(ZoneId.systemDefault())
+        return firstDay.toInstant().toEpochMilli()
+    }
+
+    // 範例：取得當月結束時間戳（毫秒）
+    private fun getEndOfMonthTimestamp(year: Int, month: Int): Long {
+        val lastDay = LocalDate.of(year, month, 1).plusMonths(1).minusDays(1)
+            .atTime(23, 59, 59, 999_999_999).atZone(ZoneId.systemDefault())
+        return lastDay.toInstant().toEpochMilli()
+    }
+
+    // 取得某日開始時間戳
+    private fun getStartOfDayTimestamp(year: Int, month: Int, day: Int): Long {
+        val dateTime = LocalDate.of(year, month, day).atStartOfDay(ZoneId.systemDefault())
+        return dateTime.toInstant().toEpochMilli()
     }
 
     fun loadMonthlyData(currentMonth: YearMonth?) {
@@ -137,5 +200,11 @@ class TransactionViewModel(
                 .mapValues { entry -> entry.value.sumOf { it.amount } }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+    // 取得某日結束時間戳
+    private fun getEndOfDayTimestamp(year: Int, month: Int, day: Int): Long {
+        val dateTime = LocalDate.of(year, month, day).atTime(23, 59, 59, 999_999_999)
+            .atZone(ZoneId.systemDefault())
+        return dateTime.toInstant().toEpochMilli()
+    }
 }
 
