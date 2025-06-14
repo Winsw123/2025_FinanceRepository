@@ -1,6 +1,7 @@
 package com.example.financerepository.ui.screen
 
 import android.icu.text.NumberFormat
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,10 +14,19 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import com.example.financerepository.data.model.Transaction
+import com.example.financerepository.data.model.TransactionType
 import com.example.financerepository.ui.components.CalendarPager
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
+import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,9 +57,12 @@ fun LedgerFragment(viewModel: TransactionViewModel) {
             val daysInMonth = anyDate.lengthOfMonth()
             val dailyBudget = monthlyBudget.toDouble() / daysInMonth
 
-            val spendByDate = monthlyTransactions.groupBy {
-                Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-            }.mapValues { entry -> entry.value.sumOf { it.amount } }
+            val spendByDate = monthlyTransactions
+                .filter { it.type == TransactionType.EXPENSE }
+                .groupBy {
+                    Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+                }
+                .mapValues { entry -> entry.value.sumOf { it.amount } }
 
             val overDates = spendByDate.filter { it.value > dailyBudget }.keys
             overBudgetDates.value = overDates
@@ -57,7 +70,7 @@ fun LedgerFragment(viewModel: TransactionViewModel) {
             overBudgetDates.value = emptySet()
         }
     }
-
+// test unit
 //    LaunchedEffect(Unit) {
 //        val testDate = LocalDate.of(2025, 6, 18)
 //        val zoneId = ZoneId.systemDefault()
@@ -76,14 +89,11 @@ fun LedgerFragment(viewModel: TransactionViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 4.dp)
-            .verticalScroll(rememberScrollState()) // 添加垂直滚动
+            .padding(horizontal = 16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "選擇日期",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         CalendarPager(
             overBudgetDates = overBudgetDates.value,
@@ -93,30 +103,35 @@ fun LedgerFragment(viewModel: TransactionViewModel) {
             selectedDate = selectedDate,
             onDateSelected = { date ->
                 selectedDate = date
-                // 讀取該日資料
                 viewModel.loadTransactionsByDate(date.year, date.monthValue, date.dayOfMonth)
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 顯示當月總預算
-        val formattedBudget = NumberFormat.getNumberInstance(Locale.getDefault()).format(monthlyBudget)
-        Text(
-            text = "本月總預算：$formattedBudget 元",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
+        // 已選擇日期 - 加邊框和底色，增加辨識度
         selectedDate?.let { date ->
-            Text("已選擇日期：${date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}")
-            BudgetSummary(date, transactions, monthlyBudget)
-        }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "日期：${date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        fontWeight = FontWeight.Medium
+                    )
 
-        Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    BudgetSummary(date, transactions, monthlyBudget)
+                }
+            }
+        }
 
         Divider()
 
@@ -126,23 +141,91 @@ fun LedgerFragment(viewModel: TransactionViewModel) {
         } else {
             Column {
                 transactions.forEach { transaction ->
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                        Text("標題：${transaction.title}")
-                        Text("金額：${transaction.amount}")
-                        Text("類型：${transaction.type}")
-                        Text("分類：${transaction.category}")
+                    val color = when (transaction.type) {
+                        TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
+                        TransactionType.INCOME -> MaterialTheme.colorScheme.primary
+                        TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
+                    }
 
-                        Button(
-                            onClick = { transactionToDelete = transaction },
-                            modifier = Modifier.padding(top = 4.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                        ) {
-                            Text("刪除")
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+
+                            // 第一行：Icon + 標題 + 金額
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val icon = when (transaction.type) {
+                                        TransactionType.EXPENSE -> Icons.Default.ArrowDownward
+                                        TransactionType.INCOME -> Icons.Default.ArrowUpward
+                                        TransactionType.TRANSFER -> Icons.Default.SwapHoriz
+                                    }
+
+                                    val color = when (transaction.type) {
+                                        TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
+                                        TransactionType.INCOME -> MaterialTheme.colorScheme.primary
+                                        TransactionType.TRANSFER -> MaterialTheme.colorScheme.secondary
+                                    }
+
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = transaction.type.name,
+                                        tint = color,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    Text(
+                                        text = transaction.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = color
+                                    )
+                                }
+
+                                Text(
+                                    text = "${transaction.amount}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = color
+                                )
+                            }
+
+                            // 第二行：類型與分類
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "類型：${transaction.type.displayName}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                Text(
+                                    text = "分類：${transaction.category.displayName}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+
+                            // 刪除按鈕
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { transactionToDelete = transaction }) {
+                                    Text("刪除", color = MaterialTheme.colorScheme.error)
+                                }
+                            }
                         }
                     }
-                    Divider()
                 }
             }
+
         }
     }
     if (transactionToDelete != null) {
@@ -171,13 +254,47 @@ fun LedgerFragment(viewModel: TransactionViewModel) {
 fun BudgetSummary(date: LocalDate, transactions: List<Transaction>, monthlyBudget: Int) {
     val daysInMonth = date.lengthOfMonth()
     val dailyBudget = monthlyBudget.toDouble() / daysInMonth
-    val totalSpentToday = transactions.sumOf { it.amount }
+    val totalSpentToday = transactions
+        .filter { it.type == TransactionType.EXPENSE }
+        .sumOf { it.amount }
     val overBudget = totalSpentToday > dailyBudget
 
-    Text(
-        text = "今日花費：$totalSpentToday / 預算：${dailyBudget.toInt()}",
-        color = if (overBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground,
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = Modifier.padding(vertical = 8.dp)
-    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 16.dp)
+            .background(
+                color = if (overBudget) MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                else MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "今日花費：",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        val formatter = DecimalFormat("#,###")
+        Text(
+            text = formatter.format(totalSpentToday),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = if (overBudget) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "預算：",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = formatter.format(dailyBudget),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onBackground
+        )
+    }
 }

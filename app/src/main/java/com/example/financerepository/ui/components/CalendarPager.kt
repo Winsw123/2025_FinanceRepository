@@ -33,7 +33,6 @@ fun CalendarPager(
     val firstDayOfMonth = currentYearMonth.atDay(1)
     val firstWeekday = firstDayOfMonth.dayOfWeek.value % 7 // Sunday = 0
 
-    val totalCells = daysInMonth + firstWeekday
     val dayList = buildList {
         repeat(firstWeekday) { add(null) }
         for (day in 1..daysInMonth) {
@@ -93,7 +92,7 @@ fun CalendarPager(
             columns = GridCells.Fixed(7),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp),
+                .height(200.dp),
             userScrollEnabled = false
         ) {
             items(dayList) { date ->
@@ -117,7 +116,7 @@ fun CalendarPager(
                                 when {
                                     isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                                     isOverBudget -> MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                                    isHasTransaction -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                    isHasTransaction && !isOverBudget -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                     else -> Color.Transparent
                                 }
                             )
@@ -130,10 +129,11 @@ fun CalendarPager(
                         Text(
                             text = date.dayOfMonth.toString(),
                             textAlign = TextAlign.Center,
-                            color = if (isOverBudget)
-                                MaterialTheme.colorScheme.error
-                            else
-                                MaterialTheme.colorScheme.onBackground,
+                            color = when {
+                                isOverBudget -> MaterialTheme.colorScheme.error
+                                isHasTransaction && !isOverBudget -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.onBackground
+                            },
                             style = if (isHasTransaction)
                                 MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
                             else
