@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.accompanist.pager.indicators)
     implementation (libs.mpandroidchart)
     implementation (libs.threetenabp)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
     // Room with KSP
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
@@ -77,7 +79,6 @@ dependencies {
     testImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.androidx.core.testing)
     implementation(libs.androidx.material.icons.extended)
-
     implementation(libs.material3)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.inline)
