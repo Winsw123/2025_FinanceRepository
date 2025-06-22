@@ -28,6 +28,9 @@ import androidx.datastore.dataStore
 import androidx.lifecycle.ViewModelProvider
 import com.example.financerepository.data.datastore.DataStoreManager
 import com.example.financerepository.data.db.AppDatabase
+import com.example.financerepository.data.remote.RetrofitInstance
+import com.example.financerepository.data.remote.StockApiService
+import com.example.financerepository.repository.StockRepository
 import com.example.financerepository.repository.TransactionRepositoryImpl
 import com.example.financerepository.ui.screen.DashboardFragment
 import com.example.financerepository.ui.screen.LedgerFragment
@@ -35,6 +38,8 @@ import com.example.financerepository.ui.screen.SettingFragment
 import com.example.financerepository.ui.screen.StockFragment
 import com.example.financerepository.ui.screen.TransactionFragment
 import com.example.financerepository.ui.theme.FinanceRepositoryTheme
+import com.example.financerepository.viewmodel.StockViewModel
+import com.example.financerepository.viewmodel.StockViewModelFactory
 import com.example.financerepository.viewmodel.TransactionViewModel
 import com.example.financerepository.viewmodel.TransactionViewModelFactory
 
@@ -47,11 +52,14 @@ class MainActivity : ComponentActivity() {
         val dataStore = DataStoreManager(applicationContext)
         val viewModelFactory = TransactionViewModelFactory(repository, dataStore)
         val viewModel: TransactionViewModel = ViewModelProvider(this, viewModelFactory)[TransactionViewModel::class.java]
-
+        val stockRepository = StockRepository(RetrofitInstance.api)
+        val stockViewModelFactory = StockViewModelFactory(stockRepository) // 如果需要 Repository 請傳入
+        val stockViewModel: StockViewModel = ViewModelProvider(this, stockViewModelFactory)[StockViewModel::class.java]
         setContent {
             FinanceRepositoryTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    MainScreen(viewModel)
+                    MainScreen(viewModel,stockViewModel)
+
                 }
             }
         }
@@ -59,7 +67,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(viewModel: TransactionViewModel) {
+fun MainScreen(viewModel: TransactionViewModel,  stockViewModel: StockViewModel) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -103,7 +111,7 @@ fun MainScreen(viewModel: TransactionViewModel) {
                 0 -> DashboardFragment(viewModel)
                 1 -> LedgerFragment(viewModel)
                 2 -> TransactionFragment(viewModel)
-                3 -> StockFragment()
+                3 -> StockFragment(stockViewModel)
                 4 -> SettingFragment(viewModel)
             }
         }
